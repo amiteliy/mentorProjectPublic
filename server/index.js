@@ -78,10 +78,8 @@ const io = require('socket.io')(server, {
   cors: {
     origin: (origin, callback) => {
       if (origin && origin.startsWith('http://localhost:')) {
-        // Allow requests from any localhost port
         callback(null, true);
       } else {
-        // Block requests not originating from localhost
         callback(new Error('Not allowed by CORS'));
       }
     },
@@ -92,6 +90,7 @@ const io = require('socket.io')(server, {
 
 
 const cors = require('cors');
+app.use(express.static('path/to/your/react-app/build'));
 app.use(cors());
 app.use(express.json());
 app.use((req, res, next) => {
@@ -114,8 +113,6 @@ app.get('/codeblocks', async (req, res) => {
 })
 
 
-
-
 app.get('/api/CodeBlocks/:id', async (req, res) => {
   console.log(`Fetching code block with ID: ${req.params.id}`);
   const codeBlockId = req.params.id;
@@ -134,7 +131,9 @@ app.get('/api/CodeBlocks/:id', async (req, res) => {
   }
 });
 
-// for handling real-time events
+
+
+
 io.on('connection', (socket) => {
   console.log('A user connected');
 
@@ -143,18 +142,16 @@ io.on('connection', (socket) => {
     socket.join(roomId);
     const room = io.sockets.adapter.rooms.get(roomId);
     const isMentor = room && room.size === 1;
-    console.log(`55555555555555: ${isMentor}`);
-
+    console.log(`User role: ${isMentor ? 'Mentor' : 'Student'}`)
 
     socket.emit('roleAssigned', isMentor ? 'mentor' : 'student');
     console.log(`Role assigned to user in room ${roomId}: ${isMentor ? 'mentor' : 'student'}`);
 
    
     try {
-      const currentCodeBlock = await CodeBlock.findById(roomId);
-      if (currentCodeBlock) {
+      const currentCodeBlock = await CodeBlock.findOne({ codeBlockId: roomId });      if (currentCodeBlock) {
         io.to(roomId).emit('codeUpdate', currentCodeBlock.code);
-        // socket.emit('codeUpdate', currentCodeBlock.code);
+        socket.emit('codeUpdate', currentCodeBlock.code);
       }
     } catch (error) {
       console.error('Error fetching code block:', error);
@@ -168,61 +165,11 @@ io.on('connection', (socket) => {
     socket.to(roomId).emit('codeUpdate', newCode);
   });
 
-  socket.on('submitCode', async ({ roomId, studentCode }) => {
-    try {
-      const currentCodeBlock = await CodeBlock.findById(roomId);
-      if (currentCodeBlock && studentCode.trim() === currentCodeBlock.solution.trim()) {
-        socket.emit('correctSolution', { correct: true });
-      } else {
-        socket.emit('correctSolution', { correct: false });
-      }
-    } catch (error) {
-      console.error('Error verifying code:', error);
-    }
-  });
+  
 });
 
 // port number on which the server listen for requests
 const PORT = process.env.PORT || 3000;
 server.listen(PORT, () => console.log(`Server running on port ${PORT}`));
 
-//bonus
-const codeSolutions = {
-    "1": `function delayedGreeting() {
-        setTimeout(function() {
-          console.log("Hello, JavaScript!");
-        }, 2000);} 
-      `,
-    "2": `function bubbleSort(arr) {
-        let n = arr.length;
-        for (let i = 0; i < n-1; i++) {
-          for (let j = 0; j < n-i-1; j++) {
-            if (arr[j] > arr[j+1]) {
-              // Swap arr[j] and arr[j+1]
-              let temp = arr[j];
-              arr[j] = arr[j+1];
-              arr[j+1] = temp;
-            }
-          }
-        }
-        return arr;
-      }`,
 
-"3": `class Rectangle {
-    constructor(width, height) {
-      this.width = width;
-      this.height = height;
-    }
-  
-    area() {
-      return this.width * this.height;
-    }
-  }`,
-
-  "4": `
-    const names = ['amit', 'inbar', 'noa'];
-    const uppercaseNames = names.map(name => name.toUpperCase());
-    console.log(uppercaseNames);
-  `
-
-};
