@@ -1,10 +1,16 @@
-import React, { useState, useEffect } from 'react';
-import { useParams, useLocation } from 'react-router-dom'; // access the URL parameters
+import React, { useState, useEffect, useRef  } from 'react';
+import { useParams, useLocation } from 'react-router-dom'; 
 import './CodeBlock.css';
+
+import hljs from 'highlight.js/lib/core';
+import 'highlight.js/styles/nord.css';
+import javascript from 'highlight.js/lib/languages/javascript';
 
 
 import io from 'socket.io-client'; 
 const socket = io('http://localhost:3000'); 
+hljs.registerLanguage('javascript', javascript);
+
 
 const  CodeBlock = () => {
 // Get the code block ID from the URL - identify which code block
@@ -12,68 +18,76 @@ const  CodeBlock = () => {
   const location = useLocation(); 
   const [code, setCode] = useState('');
   const [isMentor, setIsMentor] = useState(false);
+  const [solution, setSolution] = useState('');
+  const [isCorrect, setIsCorrect] = useState(false);
+  const codeRef = useRef(null);
 
 
   useEffect(() => {
-    console.log(' Code block ID:', id);
-  //conect to server
+    console.log('Fetching initial code for code block ID:', id);
     const fetchInitialCode = async () => {
-      console.log('Fetching initial code...');
       try {
-        const response = await fetch(`http://localhost:3000/api/CodeBlocks/${id}`); 
+        const response = await fetch(`http://localhost:3000/api/CodeBlocks/${id}`);
         if (!response.ok) {
-          throw new Error(`Error: ${response.statusText}`);
+          throw new Error(`Error fetching code block: ${response.statusText}`);
         }
-        // client get from the server data fron db - as jason
         const data = await response.json();
-        if (data && data.code) {
-          setCode(data.code);
-        } else {
-      console.error('No code found in response:', data);
-    }
+        setCode(data.code);
+        setSolution(data.solution);
       } catch (error) {
-        console.error("Error fetching initial code:", error.messag);
+        console.error("Error fetching initial code:", error.message);
       }
     };
 
-    if (!location.state || !location.state.code) {
-      fetchInitialCode();
-    } else {
-      setCode(location.state.code);
-    }
+    fetchInitialCode();
+  }, [id]);
 
-    //client sent to server -  to get this room 
+
+  useEffect(() => {
+    if (codeRef.current) {
+      hljs.highlightElement(codeRef.current);
+      console.log('Highlighting code block:', codeRef.current);
+        const normalizedCode = normalizeCode(code);
+        const normalizedSolution = normalizeCode(solution);
+        console.log('normalizedCod:', normalizedCode);
+        console.log('normalizedSolution:', normalizedSolution);
+        setIsCorrect(normalizedCode !== null && normalizedCode === normalizedSolution);
+        console.log('solution stat:', normalizedCode === normalizedSolution);
+      
+    }
+  }, [code,setSolution]);
+
+  
+
+
+  useEffect(() => {
     socket.emit('joinRoom', id);
-   
-    //get from server change in code
-    socket.on('codeUpdate', (newCode) => {
+
+    socket.on('codeUpdate', newCode => {
       console.log('Code updated from socket:', newCode);
       setCode(newCode);
+      hljs.highlightElement(codeRef.current);
     });
 
-    //get from server the role of the client in the room
     socket.on('roleAssigned', (role) => {
       console.log(`Before setting isMentor, current state is: ${isMentor}`);
       setIsMentor(role !== 'student');
       console.log(`After setting isMentor, new state should be: ${role !== 'student'}`);
-    });
+          });
 
 
-  
     return () => {
       socket.off('codeUpdate');
-      // socket.off('correctSolution');
       socket.off('roleAssigned');
     };
   }, [id,code, location.state, isMentor]);
   console.log(`is mentor ${isMentor}`);
-  
+
 
   const handleCodeChange = (e) => {
     const updatedCode = e.target.value;
     console.log('Code changed by user:', updatedCode);
     setCode(updatedCode);
-    // Emit code changes only if the user is not a mentor
     if (!isMentor) {
       socket.emit('codeChange', { roomId: id, newCode: updatedCode });
     }
@@ -81,29 +95,33 @@ const  CodeBlock = () => {
   
   
   return (
-    <div key={isMentor ? 'mentor' : 'student'}>
-       {isMentor ? 
-       (<div>
-       <h2> Code block - Code editing is disabled </h2> 
-       <textarea
-            value={code}
-            className="codeEditor"
-            readOnly={false}
-            />
-        </div>
-       ) : 
-          (<div>
-            <h2> Code block  </h2> 
-          <textarea
-            value={code}
-            onChange={handleCodeChange}
-            className="codeEditor"
-          />
-          </div>)}
-          {/* <button onClick={handleSubmit} className="submitButton">Submit Code</button> */}
+    <div className="codeBlockContainer">
+      <h2>Code Block - {isMentor ? "Code editing is disabled" : "Edit your code"}</h2>
+      {isCorrect && <div className="solutionCorrect">Correct Solution! 😃</div>}
+      <pre className="preCode"><code ref={codeRef} className="javascript hljs">{code}
+      
+        </code></pre>
+      {!isMentor && (
+        <>
+        <textarea
+          className="codeEditor"
+          value={code}
+          onChange={handleCodeChange} 
+        />
+         </>
+      )}
     </div>
   );
+  
+
+
 };
+
+function normalizeCode(str) {
+  if (!str || typeof str !== 'string'|| str == '') return null;
+  return str.replace(/\s+/g, '');
+}
 
 
 export default CodeBlock;
+

@@ -1,0 +1,19 @@
+{
+    "compilerOptions": {
+      "target": "es5",                                 // Specify ECMAScript target version
+      "module": "commonjs",                            // Specify module code generation
+      "strict": true,                                  // Enable all strict type-checking options
+      "esModuleInterop": true,                         // Enable compatibility with Babel imports
+      "skipLibCheck": true,                            // Skip type checking of declaration files
+      "forceConsistentCasingInFileNames": true         // Disallow inconsistently-cased references
+    },
+    "include": [
+      "src/**/*"                                       // Include all files in the src folder
+    ],
+    "exclude": [
+      "node_modules",                                  // Exclude the node_modules directory
+      "**/*.spec.ts"                                   // Exclude test files
+    ]
+  }
+  
+  

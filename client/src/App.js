@@ -3,6 +3,8 @@ import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import Lobby from './Lobby';
 import CodeBlock from './CodeBlock';
 
+import 'highlight.js/styles/nord.css';
+
 
 function App() {
   return (
