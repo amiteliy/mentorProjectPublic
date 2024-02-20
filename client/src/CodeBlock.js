@@ -8,7 +8,8 @@ import javascript from 'highlight.js/lib/languages/javascript';
 
 
 import io from 'socket.io-client'; 
-const socket = io('http://localhost:3000'); 
+// const socket = io('http://localhost:3000');
+const socket = new WebSocket('https://mentorprojectamit.netlify.app'); 
 hljs.registerLanguage('javascript', javascript);
 
 
@@ -27,7 +28,8 @@ const  CodeBlock = () => {
     console.log('Fetching initial code for code block ID:', id);
     const fetchInitialCode = async () => {
       try {
-        const response = await fetch(`http://localhost:3000/api/CodeBlocks/${id}`);
+        const response = await fetch(`https://mentorprojectamit.netlify.app/CodeBlocks/${id}`)
+        // const response = await fetch(`http://localhost:3000/api/CodeBlocks/${id}`);
         if (!response.ok) {
           throw new Error(`Error fetching code block: ${response.statusText}`);
         }

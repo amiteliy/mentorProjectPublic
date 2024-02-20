@@ -129,7 +129,7 @@ const server = http.createServer(app);
 const io = require('socket.io')(server, {
   cors: {
     origin: (origin, callback) => {
-      if (origin && origin.startsWith('https://mentorpro.netlify.app')) {
+      if (origin && origin.startsWith('https://mentorprojectamit.netlify.app')) {
         callback(null, true);
       } else {
         callback(new Error('Not allowed by CORS'));
