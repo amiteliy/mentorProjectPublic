@@ -8,9 +8,8 @@ const mongoose = require('mongoose');
 //mports the CodeBlock model from db.js
 const { CodeBlock } = require('./db'); 
 
-mongoose.connect('mongodb://127.0.0.1:27017/mentorProject', {
-  useNewUrlParser: true
-}).then(() => console.log('MongoDB connected'))
+mongoose.connect('mongodb+srv://mongo:mongo@cluster0.4m9rki8.mongodb.net/')
+.then(() => console.log('MongoDB connected'))
   .catch(err => console.log(err));
 
 
@@ -111,10 +110,10 @@ mongoose.connect('mongodb://127.0.0.1:27017/mentorProject', {
   ];
   
 
-  CodeBlock.deleteMany({})
-  .then(() => {
-    return CodeBlock.insertMany(newCodeBlocks);
-  })
+  // CodeBlock.deleteMany({})
+  // .then(() => {
+  //   return CodeBlock.insertMany(newCodeBlocks);
+  // })
   CodeBlock.insertMany(newCodeBlocks)
   .then(savedCodeBlocks => {
       console.log('Code blocks saved successfully:', savedCodeBlocks);
