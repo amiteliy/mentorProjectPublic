@@ -118,6 +118,16 @@ mongoose.connect('mongodb+srv://mongo:mongo@cluster0.4m9rki8.mongodb.net/')
 const app = express();
 const server = http.createServer(app);
 const wss = new WebSocket.Server({ server });
+const path = require('path');
+
+app.use(express.static(path.join(__dirname, 'build')));
+
+app.get('*', (req, res) => {
+  res.sendFile(path.join(__dirname, 'build', 'index.html'));
+});
+
+
+
 
 const cors = require('cors');
 app.use(express.static('public'));

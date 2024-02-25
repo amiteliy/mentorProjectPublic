@@ -117,8 +117,6 @@ const  CodeBlock = () => {
     </div>
   );
   
-
-
 };
 
 function normalizeCode(str) {
