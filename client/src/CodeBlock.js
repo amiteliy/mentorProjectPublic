@@ -20,8 +20,8 @@ const  CodeBlock = () => {
 
   useEffect(() => {
     if (!socketRef.current) {
-      socketRef.current = new WebSocket('ws://localhost:3000');
-
+      // socketRef.current = new WebSocket('ws://localhost:3000');
+      socketRef.current = new WebSocket('wss://moveomentor.onrender.com');
       socketRef.current.onopen = () => {
         console.log('Connected to WebSocket');
         socketRef.current.send(JSON.stringify({ type: 'joinRoom', roomId: id }));
@@ -53,7 +53,7 @@ const  CodeBlock = () => {
     console.log('Fetching initial code for code block ID:', id);
     const fetchInitialCode = async () => {
       try {
-        const response = await fetch(`http://localhost:3000/api/CodeBlocks/${id}`);
+        const response = await fetch(`/api/CodeBlocks/${id}`);
         if (!response.ok) {
           throw new Error(`Error fetching code block: ${response.statusText}`);
         }
