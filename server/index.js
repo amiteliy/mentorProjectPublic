@@ -120,16 +120,18 @@ const server = http.createServer(app);
 const wss = new WebSocket.Server({ server });
 const path = require('path');
 
-app.use(express.static(path.join(__dirname, '../client/build')));
+app.use(express.static(path.join(__dirname, '..', 'build')));
 
 app.get('*', (req, res) => {
-  res.sendFile(path.join(__dirname, '../client/build/index.html'));
+  res.sendFile(path.join(__dirname, '..', 'build', 'index.html'));
 });
 
 
 
 
+
 const cors = require('cors');
+app.use(cors({ origin: 'https://moveomentor.onrender.com' }));
 app.use(express.static('public'));
 app.use(cors());
 app.use(express.json());

@@ -53,7 +53,7 @@ const  CodeBlock = () => {
     console.log('Fetching initial code for code block ID:', id);
     const fetchInitialCode = async () => {
       try {
-        const response = await fetch(`https://moveomentor.onrender.com/api/CodeBlocks/${id}`);
+        const response = await fetch(`${process.env.REACT_APP_API_URL}/api/CodeBlocks/${id}`);
         if (!response.ok) {
           throw new Error(`Error fetching code block: ${response.statusText}`);
         }
