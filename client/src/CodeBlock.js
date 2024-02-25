@@ -20,7 +20,6 @@ const  CodeBlock = () => {
 
   useEffect(() => {
     if (!socketRef.current) {
-      // socketRef.current = new WebSocket('ws://localhost:3000');
       socketRef.current = new WebSocket('wss://moveomentor.onrender.com');
       socketRef.current.onopen = () => {
         console.log('Connected to WebSocket');
