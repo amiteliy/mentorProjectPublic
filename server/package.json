@@ -15,6 +15,7 @@
     "highlight.js": "^11.9.0",
     "mongodb": "^6.3.0",
     "mongoose": "^8.1.2",
-    "socket.io": "^4.7.4"
+    "socket.io": "^4.7.4",
+    "ws": "^8.16.0"
   }
 }

@@ -3,9 +3,8 @@
 const express = require('express');
 // create an HTTP server
 const http = require('http');
-const socketIo = require('socket.io');
+const WebSocket = require('ws');
 const mongoose = require('mongoose');
-//mports the CodeBlock model from db.js
 const { CodeBlock } = require('./db'); 
 
 mongoose.connect('mongodb+srv://mongo:mongo@cluster0.4m9rki8.mongodb.net/')
@@ -109,40 +108,19 @@ mongoose.connect('mongodb+srv://mongo:mongo@cluster0.4m9rki8.mongodb.net/')
     }
   ];
   
-
-  // CodeBlock.deleteMany({})
-  // .then(() => {
-  //   return CodeBlock.insertMany(newCodeBlocks);
-  // })
-  CodeBlock.insertMany(newCodeBlocks)
-  .then(savedCodeBlocks => {
-      console.log('Code blocks saved successfully:', savedCodeBlocks);
-  })
-  .catch(error => {
-      console.error('Error saving code blocks:', error);
-    });
-
+  newCodeBlocks.forEach(block => {
+    CodeBlock.updateOne({ codeBlockId: block.codeBlockId }, { $set: block }, { upsert: true })
+      .then(result => console.log(`Successfully upserted code block with ID: ${block.codeBlockId}`))
+      .catch(error => console.error(`Error upserting code block with ID: ${block.codeBlockId}:`, error));
+  });
 
 
 const app = express();
 const server = http.createServer(app);
-const io = require('socket.io')(server, {
-  cors: {
-    origin: (origin, callback) => {
-      if (origin && origin.startsWith('https://mentorprojectamit.netlify.app')) {
-        callback(null, true);
-      } else {
-        callback(new Error('Not allowed by CORS'));
-      }
-    },
-    methods: ["GET", "POST"],
-    credentials: true
-  }
-});
-
+const wss = new WebSocket.Server({ server });
 
 const cors = require('cors');
-app.use(express.static('client/build'));
+app.use(express.static('public'));
 app.use(cors());
 app.use(express.json());
 app.use((req, res, next) => {
@@ -181,29 +159,59 @@ app.get('/api/CodeBlocks/:id', async (req, res) => {
   }
 });
 
-io.on('connection', (socket) => {
+wss.on('connection', function connection(ws) {
   console.log('A user connected');
 
-  socket.on('joinRoom', (roomId) => {
-    console.log(`User joined room: ${roomId}`);
-    socket.join(roomId);
-    const isMentor = !mentorRooms[roomId] || mentorRooms[roomId] === socket.id;
-    if (isMentor) {
-      mentorRooms[roomId] = socket.id; 
+  ws.on('message', function incoming(message) {
+    console.log('received:', message);
+    let data;
+    try {
+      data = JSON.parse(message);
+    } catch (error) {
+      console.error('Failed to parse message:', error);
+      return;
     }
-    socket.emit('roleAssigned', isMentor ? 'mentor' : 'student');
-    console.log(`Role assigned in room ${roomId}: ${isMentor ? 'mentor' : 'student'}`);
+
+    if (data.type == 'joinRoom') {
+        const roomId = data.roomId;
+        console.log(`User joined room: ${roomId}`);
+        if (!mentorRooms[roomId]) {
+          // This ws becomes the mentor for the room 
+          mentorRooms[roomId] = ws;
+          ws.send(JSON.stringify({ type: 'roleAssigned', role: 'mentor' }));
+          console.log(`Assigned as mentor in room ${roomId}`);
+        } else {
+        ws.send(JSON.stringify({ type: 'roleAssigned', role: 'student' }));
+        console.log(`Assigned as student in room ${roomId}`);
+      }
+      console.log(`User joined room ${roomId} as ${mentorRooms[roomId] === ws ? 'mentor' : 'student'}`);
+      }
+      if (data.type == 'codeChange') {
+        const roomId = data.roomId;
+      if (mentorRooms[roomId] !== ws) { 
+        wss.clients.forEach(function each(client) {
+          if (client !== ws && client.readyState === WebSocket.OPEN) {
+            client.send(JSON.stringify({ type: 'codeUpdate', code: data.newCode }));
+          }
+        });
+      }
+    }
   });
 
-  socket.on('codeChange', ({ roomId, newCode }) => {
-    socket.to(roomId).emit('codeUpdate', newCode);
+  ws.on('close', function(code, reason) {
+    console.log(`A user disconnected with code: ${code}, reason: ${reason}`);
   });
+  
+
+  ws.on('error', function error(e) {
+    console.log('WebSocket error:', e);
+  });
+
 
 });
+
 
 
 // port number on which the server listen for requests
 const PORT = process.env.PORT || 3000;
 server.listen(PORT, () => console.log(`Server running on port ${PORT}`));
-
-
