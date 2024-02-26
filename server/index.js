@@ -119,17 +119,6 @@ const app = express();
 const server = http.createServer(app);
 const wss = new WebSocket.Server({ server });
 
-app.use(express.static(path.join(__dirname, '../client/build')));
-
-app.get('*', (req, res) => {
-  res.sendFile(path.join(__dirname, '../client/build', 'index.html'));
-});
-
-
-
-
-
-
 const cors = require('cors');
 app.use(cors({ origin: 'https://moveomentor.onrender.com' }));
 app.use(express.static('public'));
@@ -146,9 +135,11 @@ app.use((req, res, next) => {
 
 let mentorRooms = {};
 
-app.get('/codeblocks', async (req, res) => {
+app.get('api/codeblocks', async (req, res) => {
+  console.log('Fetching all code blocks');
   try {
     const codeBlocks = await CodeBlock.find();
+    console.log('CodeBlocks found:', codeBlocks);
     res.json(codeBlocks);
   } catch (error) {
     console.error('Error retrieving code blocks:', error);
@@ -222,7 +213,11 @@ wss.on('connection', function connection(ws) {
 
 });
 
+app.use(express.static(path.join(__dirname, '../client/build')));
 
+app.get('/*', (req, res) => {
+  res.sendFile(path.join(__dirname, '../client/build', 'index.html'));
+});
 
 // port number on which the server listen for requests
 const PORT = process.env.PORT || 3000;
