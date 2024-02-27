@@ -135,7 +135,7 @@ app.use((req, res, next) => {
 
 let mentorRooms = {};
 
-app.get('api/codeblocks', async (req, res) => {
+app.get('/api/codeblocks', async (req, res) => {
   console.log('Fetching all code blocks');
   try {
     const codeBlocks = await CodeBlock.find();
