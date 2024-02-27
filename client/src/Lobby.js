@@ -12,7 +12,8 @@ const Lobby = () => {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const response = await fetch(`${process.env.REACT_APP_API_URL}`);
+        const apiUrl = process.env.REACT_APP_API_URL || 'https://moveomentor.onrender.com/api';
+        const response = await fetch(`${apiUrl}/CodeBlocks`);
         if (!response.ok) {
           throw new Error('Network response was not ok');
         }
