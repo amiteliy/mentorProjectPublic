@@ -12,7 +12,7 @@ const Lobby = () => {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const response = await fetch(`${process.env.REACT_APP_API_URL}/api/CodeBlocks`);
+        const response = await fetch(`${process.env.REACT_APP_API_URL}`);
         if (!response.ok) {
           throw new Error('Network response was not ok');
         }
