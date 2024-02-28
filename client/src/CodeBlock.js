@@ -57,14 +57,20 @@ const  CodeBlock = () => {
         if (!response.ok) {
           throw new Error(`Error fetching code block: ${response.statusText}`);
         }
-        const data = await response.json();
-        setCode(data.code);
-        setSolution(data.solution);
+        const text = await response.text(); 
+        try {
+          const data = JSON.parse(text); 
+          setCode(data.code);
+          setSolution(data.solution);
+        } catch (e) {
+          console.error("Could not parse JSON", e);
+          console.error("Received text:", text);
+        }
       } catch (error) {
         console.error("Error fetching initial code:", error.message);
       }
     };
-
+  
     fetchInitialCode();
   }, [id]);
 
