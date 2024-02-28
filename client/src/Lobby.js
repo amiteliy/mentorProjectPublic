@@ -12,6 +12,7 @@ const Lobby = () => {
   useEffect(() => {
     const fetchData = async () => {
       try {
+        console.log('API URL:', process.env.REACT_APP_API_URL);
         const apiUrl = process.env.REACT_APP_API_URL || 'https://moveomentor.onrender.com/api';
         const response = await fetch(`${apiUrl}/CodeBlocks`);
         if (!response.ok) {
