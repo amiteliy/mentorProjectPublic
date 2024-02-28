@@ -4,7 +4,7 @@ import Lobby from './Lobby';
 import CodeBlock from './CodeBlock';
 
 import 'highlight.js/styles/nord.css';
-console.log(process.env.REACT_APP_API_URL)
+
 
 function App() {
   return (
